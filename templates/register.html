@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Werkly{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="card-title">Create Your Account</h2>
+                        <p class="text-muted">Join Werkly and start finding your perfect match</p>
+                    </div>
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">I am a:</label>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="user_type" id="seeker" value="seeker" autocomplete="off" required>
+                                    <label class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" for="seeker">
+                                        <i class="bi bi-person-search fs-2 mb-2"></i>
+                                        <span>Job Seeker</span>
+                                        <small class="text-muted">Looking for opportunities</small>
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="user_type" id="company" value="company" autocomplete="off" required>
+                                    <label class="btn btn-outline-secondary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3" for="company">
+                                        <i class="bi bi-building fs-2 mb-2"></i>
+                                        <span>Company</span>
+                                        <small class="text-muted">Hiring talent</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-gradient-primary w-100 mb-3">
+                            <i class="bi bi-person-plus me-2"></i>Create Account
+                        </button>
+                        
+                        <div class="text-center">
+                            <p class="mb-0">Already have an account? 
+                                <a href="{{ url_for('login') }}" class="text-decoration-none">Sign in here</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

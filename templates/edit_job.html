@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Job - {{ job.title }} - Werkly{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil me-2"></i>Edit Job Posting
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="editJobForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Job Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" 
+                                           value="{{ job.title }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Job Description *</label>
+                                    <textarea class="form-control" id="description" name="description" 
+                                              rows="6" required>{{ job.description }}</textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="requirements" class="form-label">Requirements *</label>
+                                    <textarea class="form-control" id="requirements" name="requirements" 
+                                              rows="4" required>{{ job.requirements }}</textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="tags" class="form-label">Skills/Tags</label>
+                                    <input type="text" class="form-control" id="tags" name="tags" 
+                                           value="{{ job.tags or '' }}"
+                                           placeholder="e.g., Python, React, JavaScript">
+                                    <div class="form-text">Separate tags with commas</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="location" class="form-label">Location</label>
+                                    <input type="text" class="form-control" id="location" name="location" 
+                                           value="{{ job.location or '' }}"
+                                           placeholder="e.g., New York, NY">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="employment_type" class="form-label">Employment Type</label>
+                                    <select class="form-select" id="employment_type" name="employment_type">
+                                        <option value="">Select Type</option>
+                                        <option value="Full-time" {% if job.employment_type == 'Full-time' %}selected{% endif %}>Full-time</option>
+                                        <option value="Part-time" {% if job.employment_type == 'Part-time' %}selected{% endif %}>Part-time</option>
+                                        <option value="Contract" {% if job.employment_type == 'Contract' %}selected{% endif %}>Contract</option>
+                                        <option value="Freelance" {% if job.employment_type == 'Freelance' %}selected{% endif %}>Freelance</option>
+                                        <option value="Internship" {% if job.employment_type == 'Internship' %}selected{% endif %}>Internship</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="salary_range" class="form-label">Salary Range</label>
+                                    <input type="text" class="form-control" id="salary_range" name="salary_range" 
+                                           value="{{ job.salary_range or '' }}"
+                                           placeholder="e.g., $60,000 - $80,000">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="experience_required" class="form-label">Years of Experience Required</label>
+                                    <select class="form-select" id="experience_required" name="experience_required">
+                                        <option value="0" {% if job.experience_required == 0 %}selected{% endif %}>Entry Level (0 years)</option>
+                                        <option value="1" {% if job.experience_required == 1 %}selected{% endif %}>1 year</option>
+                                        <option value="2" {% if job.experience_required == 2 %}selected{% endif %}>2 years</option>
+                                        <option value="3" {% if job.experience_required == 3 %}selected{% endif %}>3 years</option>
+                                        <option value="5" {% if job.experience_required == 5 %}selected{% endif %}>5+ years</option>
+                                        <option value="7" {% if job.experience_required == 7 %}selected{% endif %}>7+ years</option>
+                                        <option value="10" {% if job.experience_required == 10 %}selected{% endif %}>10+ years</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_active" 
+                                               name="is_active" {% if job.is_active %}checked{% endif %}>
+                                        <label class="form-check-label" for="is_active">
+                                            Job is active and accepting applications
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-gradient-primary">
+                                <i class="bi bi-check-circle me-2"></i>Update Job
+                            </button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancel
+                            </a>
+                            <a href="{{ url_for('view_job', job_id=job.id) }}" class="btn btn-outline-info">
+                                <i class="bi bi-eye me-2"></i>Preview Job
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Preview Card -->
+            <div class="card mt-4" id="previewCard" style="display: none;">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="bi bi-eye me-2"></i>Live Preview</h6>
+                </div>
+                <div class="card-body">
+                    <div id="jobPreview">
+                        <!-- Preview content will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Live preview functionality
+function updatePreview() {
+    const title = document.getElementById('title').value || 'Job Title';
+    const location = document.getElementById('location').value || 'Location';
+    const employmentType = document.getElementById('employment_type').value || 'Employment Type';
+    const salaryRange = document.getElementById('salary_range').value || 'Salary Range';
+    const description = document.getElementById('description').value || 'Job description...';
+    const requirements = document.getElementById('requirements').value || 'Job requirements...';
+    const tags = document.getElementById('tags').value;
+    
+    let tagsHtml = '';
+    if (tags) {
+        const tagList = tags.split(',');
+        tagsHtml = tagList.map(tag => `<span class="badge bg-primary me-1">${tag.trim()}</span>`).join('');
+    }
+    
+    const previewHtml = `
+        <h5>${title}</h5>
+        <div class="mb-3">
+            ${location ? `<span class="badge bg-light text-dark me-1"><i class="bi bi-geo-alt me-1"></i>${location}</span>` : ''}
+            ${employmentType ? `<span class="badge bg-light text-dark me-1"><i class="bi bi-clock me-1"></i>${employmentType}</span>` : ''}
+            ${salaryRange ? `<span class="badge bg-light text-dark me-1"><i class="bi bi-currency-dollar me-1"></i>${salaryRange}</span>` : ''}
+        </div>
+        ${tagsHtml ? `<div class="mb-3">${tagsHtml}</div>` : ''}
+        <h6>Description</h6>
+        <p style="white-space: pre-wrap;">${description}</p>
+        <h6>Requirements</h6>
+        <p style="white-space: pre-wrap;">${requirements}</p>
+    `;
+    
+    document.getElementById('jobPreview').innerHTML = previewHtml;
+    document.getElementById('previewCard').style.display = 'block';
+}
+
+// Add event listeners for live preview
+document.addEventListener('DOMContentLoaded', function() {
+    const formFields = ['title', 'location', 'employment_type', 'salary_range', 'description', 'requirements', 'tags'];
+    
+    formFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', updatePreview);
+            field.addEventListener('change', updatePreview);
+        }
+    });
+    
+    // Initial preview
+    updatePreview();
+});
+</script>
+{% endblock %} 

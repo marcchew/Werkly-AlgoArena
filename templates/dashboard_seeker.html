@@ -1,0 +1,657 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Werkly{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Profile Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">Welcome back, {{ seeker.full_name if seeker else session.username }}!</h2>
+                            <p class="mb-0 opacity-75">
+                                {% if seeker %}
+                                    {{ seeker.experience_years }} years experience in {{ seeker.skills[:50] }}{% if seeker.skills|length > 50 %}...{% endif %}
+                                {% else %}
+                                    Complete your profile to get personalized job matches
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            {% if not seeker %}
+                                <a href="{{ url_for('profile_setup') }}" class="btn btn-light">
+                                    <i class="bi bi-person-gear me-2"></i>Complete Profile
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if seeker %}
+        <!-- AI Matching Button -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-4">
+                        <h5 class="card-title">AI Job Matching</h5>
+                        <p class="card-text text-muted">
+                            Let our AI find new job opportunities that match your profile
+                        </p>
+                        <button onclick="runMatching()" class="btn btn-gradient-secondary" id="matchingBtn">
+                            <i class="bi bi-magic me-2"></i>Find New Matches
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning me-2"></i>Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('applications') }}" class="btn btn-outline-primary d-block h-100">
+                                    <i class="bi bi-file-text d-block mb-2" style="font-size: 1.5rem;"></i>
+                                    <strong>My Applications</strong>
+                                    <small class="d-block text-muted">View application status</small>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('advice') }}" class="btn btn-outline-info d-block h-100">
+                                    <i class="bi bi-lightbulb d-block mb-2" style="font-size: 1.5rem;"></i>
+                                    <strong>Career Advice</strong>
+                                    <small class="d-block text-muted">AI-powered guidance</small>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('update_priorities') }}" class="btn btn-outline-warning d-block h-100">
+                                    <i class="bi bi-star d-block mb-2" style="font-size: 1.5rem;"></i>
+                                    <strong>Job Priorities</strong>
+                                    <small class="d-block text-muted">Update preferences</small>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('profile_setup') }}" class="btn btn-outline-secondary d-block h-100">
+                                    <i class="bi bi-person-gear d-block mb-2" style="font-size: 1.5rem;"></i>
+                                    <strong>Edit Profile</strong>
+                                    <small class="d-block text-muted">Update your info</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Priorities Management -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-star me-2"></i>Your Job Priorities
+                            </h5>
+                            <a href="{{ url_for('update_priorities') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil me-1"></i>Update Priorities
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if seeker.priorities %}
+                            {% set priorities = seeker.priorities|fromjson %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-currency-dollar me-1"></i>Salary</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('salary', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-balance me-1"></i>Work-Life Balance</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('work_life_balance', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-house me-1"></i>Remote Work</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('remote_work', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-heart me-1"></i>Company Culture</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('company_culture', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-graph-up-arrow me-1"></i>Career Growth</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('career_growth', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-shield-check me-1"></i>Job Security</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('job_security', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-mortarboard me-1"></i>Learning Opportunities</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('learning_opportunities', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-people me-1"></i>Team Environment</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('team_environment', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-person-workspace me-1"></i>Work Autonomy</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('work_autonomy', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span><i class="bi bi-gift me-1"></i>Benefits Package</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('benefits', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-3">
+                                <p class="text-muted mb-3">You haven't set your job priorities yet.</p>
+                                <a href="{{ url_for('update_priorities') }}" class="btn btn-gradient-primary">
+                                    <i class="bi bi-star me-2"></i>Set Your Priorities
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Offers Section -->
+        {% if job_offers %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-gift me-2"></i>Job Offers
+                            <span class="badge bg-success ms-2">{{ job_offers|selectattr("status", "equalto", "pending")|list|length }} Pending</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for offer in job_offers %}
+                                <div class="col-lg-6 mb-4">
+                                    <div class="card h-100 border-0 shadow-sm {% if offer.status == 'pending' %}border-warning{% elif offer.status == 'accepted' %}border-success{% elif offer.status == 'declined' %}border-secondary{% endif %}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <h6 class="card-title mb-0">{{ offer.job_title }}</h6>
+                                                <span class="badge bg-{% if offer.status == 'pending' %}warning{% elif offer.status == 'accepted' %}success{% elif offer.status == 'declined' %}secondary{% else %}primary{% endif %}">
+                                                    {{ offer.status|title }}
+                                                </span>
+                                            </div>
+                                            
+                                            <p class="text-muted mb-2">
+                                                <i class="bi bi-building me-1"></i>{{ offer.company_name }}
+                                            </p>
+                                            
+                                            {% if offer.location %}
+                                                <p class="text-muted mb-2">
+                                                    <i class="bi bi-geo-alt me-1"></i>{{ offer.location }}
+                                                </p>
+                                            {% endif %}
+                                            
+                                            {% if offer.salary_offered %}
+                                                <p class="text-success mb-2">
+                                                    <i class="bi bi-currency-dollar me-1"></i><strong>Offered:</strong> {{ offer.salary_offered }}
+                                                </p>
+                                            {% elif offer.salary_range %}
+                                                <p class="text-muted mb-2">
+                                                    <i class="bi bi-currency-dollar me-1"></i>{{ offer.salary_range }}
+                                                </p>
+                                            {% endif %}
+                                            
+                                            {% if offer.start_date %}
+                                                <p class="text-muted mb-2">
+                                                    <i class="bi bi-calendar me-1"></i><strong>Start Date:</strong> {{ offer.start_date }}
+                                                </p>
+                                            {% endif %}
+                                            
+                                            {% if offer.offer_message %}
+                                                <div class="alert alert-light small mt-3">
+                                                    <strong>Message:</strong> {{ offer.offer_message }}
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if offer.status == 'pending' %}
+                                                <div class="d-flex gap-2 mt-3">
+                                                    <button onclick="respondToOffer({{ offer.id }}, 'accepted')" class="btn btn-success btn-sm">
+                                                        <i class="bi bi-check-circle me-1"></i>Accept Offer
+                                                    </button>
+                                                    <button onclick="respondToOffer({{ offer.id }}, 'declined')" class="btn btn-outline-danger btn-sm">
+                                                        <i class="bi bi-x-circle me-1"></i>Decline
+                                                    </button>
+                                                    <button onclick="contactCompany({{ offer.company_user_id }})" class="btn btn-outline-info btn-sm">
+                                                        <i class="bi bi-chat-dots me-1"></i>Contact
+                                                    </button>
+                                                </div>
+                                            {% else %}
+                                                <div class="d-flex gap-2 mt-3">
+                                                    <button onclick="contactCompany({{ offer.company_user_id }})" class="btn btn-outline-info btn-sm">
+                                                        <i class="bi bi-chat-dots me-1"></i>Contact Company
+                                                    </button>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <small class="text-muted d-block mt-2">
+                                                Offered on {{ offer.offered_at.split(' ')[0] if offer.offered_at else 'Unknown' }}
+                                                {% if offer.responded_at and offer.status != 'pending' %}
+                                                    • Responded on {{ offer.responded_at.split(' ')[0] }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Job Matches -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-briefcase me-2"></i>Your Job Matches
+                            </h5>
+                            <div class="d-flex gap-2 align-items-center">
+                                <!-- Employment Type Filter -->
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
+                                            id="employmentTypeFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-filter me-1"></i>Filter by Type
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <button class="dropdown-item" onclick="filterByEmploymentType('all')">
+                                                <i class="bi bi-list me-2"></i>All Types
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="filterByEmploymentType('Full-time')">
+                                                <i class="bi bi-briefcase me-2"></i>Full-time
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="filterByEmploymentType('Part-time')">
+                                                <i class="bi bi-clock me-2"></i>Part-time
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="filterByEmploymentType('Contract')">
+                                                <i class="bi bi-file-text me-2"></i>Contract
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="filterByEmploymentType('Freelance')">
+                                                <i class="bi bi-person-workspace me-2"></i>Freelance
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item" onclick="filterByEmploymentType('Internship')">
+                                                <i class="bi bi-mortarboard me-2"></i>Internship
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if matches %}
+                            <div class="row" id="jobMatches">
+                                {% for match in matches %}
+                                    <div class="col-lg-6 mb-4 job-match-card" data-employment-type="{{ match.employment_type or 'Unknown' }}">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="card-title mb-0">{{ match.title }}</h6>
+                                                    <span class="match-score {% if match.match_score >= 80 %}match-high{% elif match.match_score >= 70 %}match-medium{% else %}match-low{% endif %}">
+                                                        {{ match.match_score }}%
+                                                    </span>
+                                                </div>
+                                                
+                                                <p class="text-muted mb-2">
+                                                    <i class="bi bi-building me-1"></i>{{ match.company_name }}
+                                                </p>
+                                                
+                                                <div class="row mb-2">
+                                                    <div class="col-6">
+                                                        {% if match.location %}
+                                                            <p class="text-muted mb-0 small">
+                                                                <i class="bi bi-geo-alt me-1"></i>{{ match.location }}
+                                                            </p>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-6">
+                                                        {% if match.employment_type %}
+                                                            <p class="text-muted mb-0 small">
+                                                                <i class="bi bi-clock me-1"></i>{{ match.employment_type }}
+                                                            </p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                
+                                                {% if match.salary_range %}
+                                                    <p class="text-muted mb-2">
+                                                        <i class="bi bi-currency-dollar me-1"></i>{{ match.salary_range }}
+                                                    </p>
+                                                {% endif %}
+                                                
+                                                <p class="card-text small">{{ match.description[:150] }}{% if match.description|length > 150 %}...{% endif %}</p>
+                                                
+                                                {% if match.ai_reasoning %}
+                                                    <div class="alert alert-light small mt-3">
+                                                        <strong>AI Analysis:</strong> {{ match.ai_reasoning[:200] }}{% if match.ai_reasoning|length > 200 %}...{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                <div class="d-flex gap-2 mt-3">
+                                                    <a href="{{ url_for('view_job', job_id=match.job_id) }}" class="btn btn-sm btn-gradient-primary">
+                                                        <i class="bi bi-eye me-1"></i>View Details
+                                                    </a>
+                                                    <button onclick="saveJob({{ match.job_id }})" class="btn btn-sm btn-outline-success">
+                                                        <i class="bi bi-heart me-1"></i>Save
+                                                    </button>
+                                                    <button onclick="contactCompany({{ match.company_user_id }})" class="btn btn-sm btn-outline-info">
+                                                        <i class="bi bi-chat-dots me-1"></i>Contact
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-search display-1 text-muted mb-3"></i>
+                                <h5>No job matches yet</h5>
+                                <p class="text-muted">Click "Find New Matches" to discover opportunities that match your profile</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">{{ matches|length }}</h3>
+                        <p class="text-muted mb-0">Total Matches</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">{{ matches|selectattr("match_score", ">=", 80)|list|length }}</h3>
+                        <p class="text-muted mb-0">High Matches</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">{{ matches|selectattr("match_score", ">=", 70)|selectattr("match_score", "<", 80)|list|length }}</h3>
+                        <p class="text-muted mb-0">Good Matches</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">{{ job_offers|length if job_offers else 0 }}</h3>
+                        <p class="text-muted mb-0">Job Offers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Profile Setup Prompt -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-person-gear display-1 text-muted mb-3"></i>
+                        <h4>Complete Your Profile</h4>
+                        <p class="text-muted mb-4">
+                            Set up your profile to start receiving personalized job matches powered by AI
+                        </p>
+                        <a href="{{ url_for('profile_setup') }}" class="btn btn-gradient-primary btn-lg">
+                            <i class="bi bi-arrow-right me-2"></i>Setup Profile Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterByEmploymentType(type) {
+    const matchCards = document.querySelectorAll('.job-match-card');
+    const filterButton = document.getElementById('employmentTypeFilter');
+    
+    matchCards.forEach(card => {
+        const cardType = card.getAttribute('data-employment-type');
+        if (type === 'all' || cardType === type) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Update button text
+    if (type === 'all') {
+        filterButton.innerHTML = '<i class="bi bi-filter me-1"></i>Filter by Type';
+    } else {
+        const icons = {
+            'Full-time': 'bi-briefcase',
+            'Part-time': 'bi-clock',
+            'Contract': 'bi-file-text',
+            'Freelance': 'bi-person-workspace',
+            'Internship': 'bi-mortarboard'
+        };
+        const icon = icons[type] || 'bi-clock';
+        filterButton.innerHTML = `<i class="${icon} me-1"></i>${type}`;
+    }
+    
+    // Show/hide no results message
+    const visibleCards = document.querySelectorAll('.job-match-card[style="display: block;"], .job-match-card:not([style])');
+    const noResultsMsg = document.getElementById('noFilterResults');
+    
+    if (visibleCards.length === 0 && type !== 'all') {
+        if (!noResultsMsg) {
+            const jobMatches = document.getElementById('jobMatches');
+            const noResults = document.createElement('div');
+            noResults.id = 'noFilterResults';
+            noResults.className = 'col-12 text-center py-4';
+            noResults.innerHTML = `
+                <div class="text-muted">
+                    <i class="bi bi-search display-4 mb-3"></i>
+                    <h5>No ${type} jobs found</h5>
+                    <p>Try selecting a different employment type or clear the filter to see all matches.</p>
+                    <button onclick="filterByEmploymentType('all')" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Show All Matches
+                    </button>
+                </div>
+            `;
+            jobMatches.appendChild(noResults);
+        }
+    } else if (noResultsMsg) {
+        noResultsMsg.remove();
+    }
+}
+
+function runMatching() {
+    console.log("=== MATCHING BUTTON CLICKED ===");
+    
+    const btn = document.getElementById('matchingBtn');
+    const originalText = btn.innerHTML;
+    
+    console.log("Original button text:", originalText);
+    
+    btn.innerHTML = '<i class="bi bi-spinner-border me-2"></i>Finding Matches...';
+    btn.disabled = true;
+    
+    console.log("About to make fetch request to /api/run-matching");
+    
+    fetch('/api/run-matching')
+        .then(response => {
+            console.log("Fetch response received:", response);
+            console.log("Response status:", response.status);
+            console.log("Response headers:", response.headers);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Parsed JSON data:", data);
+            if (data.success) {
+                alert(`AI matching completed! Found matches for ${data.jobs_processed} jobs.`);
+                location.reload(); // Refresh to show new matches
+            } else {
+                alert('Error running AI matching. Please try again.');
+            }
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('Error running AI matching. Please try again.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+}
+
+function saveJob(jobId) {
+    fetch(`/api/save-job/${jobId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.action === 'saved') {
+                alert('Job saved successfully!');
+            } else {
+                alert('Job removed from saved list.');
+            }
+        } else {
+            alert('Error saving job. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving job. Please try again.');
+    });
+}
+
+function contactCompany(companyUserId) {
+    window.location.href = `/contact/${companyUserId}`;
+}
+
+function respondToOffer(offerId, response) {
+    let confirmMessage = response === 'accepted' ? 
+        'Are you sure you want to accept this job offer?' : 
+        'Are you sure you want to decline this job offer?';
+    
+    if (!confirm(confirmMessage)) return;
+    
+    let notes = '';
+    if (response === 'declined') {
+        notes = prompt('Would you like to add a note about why you\'re declining? (optional)') || '';
+    }
+    
+    fetch(`/api/respond-offer/${offerId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            response: response,
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload(); // Refresh to show updated status
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error responding to offer. Please try again.');
+    });
+}
+</script>
+{% endblock %} 

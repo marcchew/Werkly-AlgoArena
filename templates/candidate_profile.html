@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+
+{% block title %}{{ candidate.full_name }} - Candidate Profile - Werkly{% endblock %}
+
+{% block content %}
+<style>
+.rating-star {
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin: 0 2px;
+    transition: color 0.2s ease;
+}
+.rating-star:hover {
+    color: #ffc107 !important;
+}
+.rating-stars {
+    user-select: none;
+}
+</style>
+<div class="container my-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Candidate Header -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h2 class="mb-1">{{ candidate.full_name }}</h2>
+                            <p class="text-muted mb-0">{{ candidate.username }}</p>
+                        </div>
+                        {% if session.user_type == 'company' %}
+                            <button onclick="toggleSaveCandidate({{ candidate.id }})" class="btn btn-outline-success" id="saveBtn">
+                                <i class="bi bi-bookmark{% if is_saved %}-fill{% endif %} me-1"></i>
+                                <span id="saveText">{% if is_saved %}Saved{% else %}Save Candidate{% endif %}</span>
+                            </button>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-auto">
+                            <span class="badge bg-light text-dark">
+                                <i class="bi bi-award me-1"></i>{{ candidate.experience_years }} years experience
+                            </span>
+                        </div>
+                        {% if candidate.preferred_location %}
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-geo-alt me-1"></i>{{ candidate.preferred_location }}
+                                </span>
+                            </div>
+                        {% endif %}
+                        {% if candidate.salary_expectation %}
+                            <div class="col-auto">
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-currency-dollar me-1"></i>Expected: ${{ candidate.salary_expectation|int }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Personal Statement -->
+            {% if candidate.personal_statement %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-person me-2"></i>Personal Statement</h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="white-space: pre-wrap;">{{ candidate.personal_statement }}</div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Skills -->
+            {% if candidate.skills %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Skills & Expertise</h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="white-space: pre-wrap;">{{ candidate.skills }}</div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Education -->
+            {% if candidate.education %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-mortarboard me-2"></i>Education</h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="white-space: pre-wrap;">{{ candidate.education }}</div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Resume/Experience -->
+            {% if candidate.resume_text %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Resume & Experience</h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="white-space: pre-wrap; font-family: monospace; font-size: 0.9em;">{{ candidate.resume_text[:2000] }}{% if candidate.resume_text|length > 2000 %}...{% endif %}</div>
+                        {% if candidate.resume_text|length > 2000 %}
+                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="toggleFullResume()">
+                                <span id="resumeToggleText">Show Full Resume</span>
+                            </button>
+                            <div id="fullResume" style="display: none; white-space: pre-wrap; font-family: monospace; font-size: 0.9em; margin-top: 1rem;">
+                                {{ candidate.resume_text[2000:] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Quick Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Quick Info</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Experience:</strong> {{ candidate.experience_years }} years
+                    </p>
+                    
+                    {% if candidate.preferred_location %}
+                        <p class="mb-2">
+                            <strong>Location:</strong> {{ candidate.preferred_location }}
+                        </p>
+                    {% endif %}
+                    
+                    {% if candidate.salary_expectation %}
+                        <p class="mb-2">
+                            <strong>Salary Expectation:</strong> ${{ candidate.salary_expectation|int }}
+                        </p>
+                    {% endif %}
+                    
+                    <p class="mb-0">
+                        <strong>Profile Created:</strong> {{ candidate.created_at.split(' ')[0] if candidate.created_at else 'Unknown' }}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Job Priorities -->
+            {% if candidate.priorities %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-star me-2"></i>Job Priorities</h5>
+                    </div>
+                    <div class="card-body">
+                        {% set priorities = candidate.priorities|fromjson %}
+                        {% if priorities %}
+                            <div class="row small">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>Salary</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('salary', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>Work-Life Balance</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('work_life_balance', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>Remote Work</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('remote_work', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span>Career Growth</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('career_growth', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Learning Opportunities</span>
+                                        <div class="priority-stars">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= priorities.get('learning_opportunities', 3) %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No priorities set</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Rating Section -->
+            {% if session.user_type == 'company' %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-star me-2"></i>Reviews & Ratings</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Rating Summary -->
+                        <div class="text-center mb-4 pb-3 border-bottom">
+                            <div class="rating-display mb-2">
+                                <span class="text-muted">Average Rating: </span>
+                                <span id="avgRating" class="fw-bold text-warning">Loading...</span>
+                                <span class="text-muted">(<span id="ratingCount">0</span> reviews)</span>
+                            </div>
+                            <div class="rating-stars mb-3" id="ratingStars">
+                                <i class="bi bi-star rating-star" data-rating="1"></i>
+                                <i class="bi bi-star rating-star" data-rating="2"></i>
+                                <i class="bi bi-star rating-star" data-rating="3"></i>
+                                <i class="bi bi-star rating-star" data-rating="4"></i>
+                                <i class="bi bi-star rating-star" data-rating="5"></i>
+                            </div>
+                            <textarea id="reviewText" class="form-control mb-3" rows="3" placeholder="Optional: Write a review about working with this candidate..."></textarea>
+                            <button class="btn btn-warning" onclick="submitRating()">
+                                <i class="bi bi-star me-1"></i>Submit Rating
+                            </button>
+                        </div>
+                        
+                        <!-- Reviews List -->
+                        <div id="reviewsList">
+                            <div class="text-center text-muted">
+                                <i class="bi bi-hourglass-split"></i> Loading reviews...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            {% if session.user_type == 'company' %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Interested in this candidate?</h6>
+                        <div class="d-grid gap-2">
+                            <button onclick="contactCandidate({{ candidate.user_id }})" class="btn btn-gradient-primary">
+                                <i class="bi bi-chat-dots me-2"></i>Contact Candidate
+                            </button>
+                            <button onclick="showOfferModal()" class="btn btn-gradient-secondary">
+                                <i class="bi bi-briefcase me-2"></i>Offer Job
+                            </button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleSaveCandidate(candidateId) {
+    fetch(`/api/save-candidate/${candidateId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const btn = document.getElementById('saveBtn');
+            const icon = btn.querySelector('i');
+            const text = document.getElementById('saveText');
+            
+            if (data.action === 'saved') {
+                icon.className = 'bi bi-bookmark-fill me-1';
+                text.textContent = 'Saved';
+                btn.className = 'btn btn-success';
+            } else {
+                icon.className = 'bi bi-bookmark me-1';
+                text.textContent = 'Save Candidate';
+                btn.className = 'btn btn-outline-success';
+            }
+        } else {
+            alert('Error saving candidate. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving candidate. Please try again.');
+    });
+}
+
+function contactCandidate(userId) {
+    window.location.href = `/contact/${userId}`;
+}
+
+function toggleFullResume() {
+    const fullResume = document.getElementById('fullResume');
+    const toggleText = document.getElementById('resumeToggleText');
+    
+    if (fullResume.style.display === 'none') {
+        fullResume.style.display = 'block';
+        toggleText.textContent = 'Show Less';
+    } else {
+        fullResume.style.display = 'none';
+        toggleText.textContent = 'Show Full Resume';
+    }
+}
+
+function showOfferModal() {
+    // Get company's jobs first to let them select which job to offer
+    fetch('/api/get-company-jobs')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.jobs.length > 0) {
+            let jobOptions = data.jobs.map(job => `${job.id}: ${job.title}`).join('\n');
+            let selectedJobId = prompt(`Select a job to offer:\n${jobOptions}\n\nEnter the job ID:`);
+            
+            if (selectedJobId) {
+                offerJobToCandidate({{ candidate.id }}, parseInt(selectedJobId));
+            }
+        } else {
+            alert('You need to have active job postings to make an offer. Please post a job first.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error loading your jobs. Please try again.');
+    });
+}
+
+function offerJobToCandidate(jobSeekerId, jobId) {
+    const offerMessage = prompt('Enter a message for the job offer (optional):');
+    if (offerMessage === null) return; // User cancelled
+    
+    const salaryOffered = prompt('Enter salary offer (optional):');
+    if (salaryOffered === null) return; // User cancelled
+    
+    const startDate = prompt('Enter proposed start date (optional):');
+    if (startDate === null) return; // User cancelled
+    
+    // Send job offer
+    fetch(`/api/offer-job/${jobSeekerId}/${jobId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            offer_message: offerMessage || '',
+            salary_offered: salaryOffered || '',
+            start_date: startDate || ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sending job offer. Please try again.');
+    });
+}
+
+// Rating functionality
+let selectedRating = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadCurrentRating();
+    setupRatingStars();
+});
+
+function loadCurrentRating() {
+    fetch(`/api/get-ratings/{{ candidate.user_id }}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('avgRating').textContent = data.avg_rating || 'No ratings yet';
+            document.getElementById('ratingCount').textContent = data.count;
+            
+            // Display individual reviews
+            const reviewsList = document.getElementById('reviewsList');
+            if (data.reviews && data.reviews.length > 0) {
+                reviewsList.innerHTML = data.reviews.map(review => `
+                    <div class="review-item border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong>${review.username}</strong>
+                                <span class="badge bg-light text-dark ms-2">${review.user_type === 'company' ? 'Company' : 'Job Seeker'}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                ${generateStars(review.rating)}
+                                <small class="text-muted ms-2">${formatDate(review.created_at)}</small>
+                            </div>
+                        </div>
+                        ${review.review ? `<p class="mb-0 text-muted">"${review.review}"</p>` : '<p class="mb-0 text-muted fst-italic">No written review</p>'}
+                    </div>
+                `).join('');
+            } else {
+                reviewsList.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-chat-square-text display-4 mb-3"></i>
+                        <p>No reviews yet</p>
+                        <small>Be the first to leave a review!</small>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading rating:', error);
+            document.getElementById('avgRating').textContent = 'Error loading';
+            document.getElementById('reviewsList').innerHTML = `
+                <div class="text-center text-danger">
+                    <i class="bi bi-exclamation-triangle"></i> Error loading reviews
+                </div>
+            `;
+        });
+}
+
+function generateStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            stars += '<i class="bi bi-star-fill text-warning"></i>';
+        } else {
+            stars += '<i class="bi bi-star text-muted"></i>';
+        }
+    }
+    return stars;
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+function setupRatingStars() {
+    const stars = document.querySelectorAll('.rating-star');
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.dataset.rating);
+            updateStarDisplay();
+        });
+        
+        star.addEventListener('mouseover', function() {
+            const rating = parseInt(this.dataset.rating);
+            highlightStars(rating);
+        });
+    });
+    
+    document.getElementById('ratingStars').addEventListener('mouseleave', function() {
+        updateStarDisplay();
+    });
+}
+
+function highlightStars(rating) {
+    const stars = document.querySelectorAll('.rating-star');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.className = 'bi bi-star-fill rating-star text-warning';
+        } else {
+            star.className = 'bi bi-star rating-star text-muted';
+        }
+    });
+}
+
+function updateStarDisplay() {
+    highlightStars(selectedRating);
+}
+
+function submitRating() {
+    if (selectedRating === 0) {
+        alert('Please select a rating (1-5 stars)');
+        return;
+    }
+    
+    const review = document.getElementById('reviewText').value.trim();
+    
+    fetch(`/api/rate/{{ candidate.user_id }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            rating: selectedRating,
+            review: review
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Rating submitted successfully!');
+            loadCurrentRating();
+            document.getElementById('reviewText').value = '';
+            selectedRating = 0;
+            updateStarDisplay();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error submitting rating. Please try again.');
+    });
+}
+</script>
+{% endblock %} 

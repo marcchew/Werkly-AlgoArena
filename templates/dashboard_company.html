@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+
+{% block title %}Company Dashboard - Werkly{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Company Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-secondary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-1">{{ company.company_name if company else session.username }}</h2>
+                            <p class="mb-0 opacity-75">
+                                {% if company %}
+                                    {{ company.industry }} • {{ company.size }} • {{ company.location }}
+                                {% else %}
+                                    Complete your company profile to start posting jobs
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            {% if company %}
+                                <a href="{{ url_for('post_job') }}" class="btn btn-light">
+                                    <i class="bi bi-plus-circle me-2"></i>Post New Job
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('profile_setup') }}" class="btn btn-light">
+                                    <i class="bi bi-building-gear me-2"></i>Complete Profile
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if company %}
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">{{ jobs|length }}</h3>
+                        <p class="text-muted mb-0">Active Jobs</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">{{ matched_candidates|length }}</h3>
+                        <p class="text-muted mb-0">Matched Candidates</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">{{ matched_candidates|selectattr("match_score", ">=", 80)|list|length }}</h3>
+                        <p class="text-muted mb-0">High Matches</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">{{ matched_candidates|selectattr("match_score", ">=", 70)|selectattr("match_score", "<", 80)|list|length }}</h3>
+                        <p class="text-muted mb-0">Good Matches</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-4">
+                        <h5 class="card-title">Quick Actions</h5>
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="{{ url_for('post_job') }}" class="btn btn-gradient-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Post New Job
+                            </a>
+                            <a href="{{ url_for('applications') }}" class="btn btn-gradient-info">
+                                <i class="bi bi-file-text me-2"></i>View Applications
+                            </a>
+                            <button onclick="runMatching()" class="btn btn-gradient-secondary" id="matchingBtn">
+                                <i class="bi bi-magic me-2"></i>Find Candidates
+                            </button>
+                            <a href="{{ url_for('profile_setup') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-gear me-2"></i>Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Listings -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-briefcase me-2"></i>Your Job Postings
+                        </h5>
+                        <a href="{{ url_for('post_job') }}" class="btn btn-sm btn-gradient-primary">
+                            <i class="bi bi-plus me-1"></i>Add Job
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        {% if jobs %}
+                            <div class="row">
+                                {% for job in jobs %}
+                                    <div class="col-lg-6 mb-4">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="card-title mb-0">{{ job.title }}</h6>
+                                                    <span class="badge bg-{% if job.is_active %}success{% else %}secondary{% endif %}">
+                                                        {% if job.is_active %}Active{% else %}Inactive{% endif %}
+                                                    </span>
+                                                </div>
+                                                
+                                                {% if job.location %}
+                                                    <p class="text-muted mb-2">
+                                                        <i class="bi bi-geo-alt me-1"></i>{{ job.location }}
+                                                    </p>
+                                                {% endif %}
+                                                
+                                                {% if job.salary_range %}
+                                                    <p class="text-muted mb-2">
+                                                        <i class="bi bi-currency-dollar me-1"></i>{{ job.salary_range }}
+                                                    </p>
+                                                {% endif %}
+                                                
+                                                {% if job.employment_type %}
+                                                    <p class="text-muted mb-2">
+                                                        <i class="bi bi-clock me-1"></i>{{ job.employment_type }}
+                                                    </p>
+                                                {% endif %}
+                                                
+                                                <p class="card-text small">{{ job.description[:150] }}{% if job.description|length > 150 %}...{% endif %}</p>
+                                                
+                                                {% if job.tags %}
+                                                    <div class="mb-3">
+                                                        {% set tag_list = job.tags.split(',') %}
+                                                        {% for tag in tag_list[:3] %}
+                                                            <span class="badge bg-light text-dark me-1">{{ tag.strip() }}</span>
+                                                        {% endfor %}
+                                                        {% if tag_list|length > 3 %}
+                                                            <span class="badge bg-light text-dark">+{{ tag_list|length - 3 }} more</span>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                <div class="d-flex gap-2 mt-3">
+                                                    <a href="{{ url_for('view_job', job_id=job.id) }}" class="btn btn-sm btn-gradient-primary">
+                                                        <i class="bi bi-eye me-1"></i>View Details
+                                                    </a>
+                                                    <a href="{{ url_for('edit_job', job_id=job.id) }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-pencil me-1"></i>Edit
+                                                    </a>
+                                                    <button onclick="viewJobCandidates({{ job.id }})" class="btn btn-sm btn-outline-secondary">
+                                                        <i class="bi bi-people me-1"></i>Candidates
+                                                    </button>
+                                                </div>
+                                                
+                                                <small class="text-muted d-block mt-2">
+                                                    Posted on {{ job.created_at.split(' ')[0] if job.created_at else 'Unknown' }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-briefcase display-1 text-muted mb-3"></i>
+                                <h5>No job postings yet</h5>
+                                <p class="text-muted mb-4">Create your first job posting to start attracting top talent</p>
+                                <a href="{{ url_for('post_job') }}" class="btn btn-gradient-primary btn-lg">
+                                    <i class="bi bi-plus-circle me-2"></i>Post Your First Job
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matched Candidates Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-people me-2"></i>Matched Candidates
+                        </h5>
+                        <small class="text-muted">{{ matched_candidates|length }} total matches</small>
+                    </div>
+                    <div class="card-body">
+                        {% if matched_candidates %}
+                            <div class="row">
+                                {% for match in matched_candidates[:8] %}
+                                    <div class="col-lg-6 mb-4">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="card-title mb-0">{{ match.full_name }}</h6>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="candidate-rating" data-user-id="{{ match.user_id }}">
+                                                            <i class="bi bi-star-fill text-warning"></i>
+                                                            <small class="text-muted">Loading...</small>
+                                                        </span>
+                                                        <span class="match-score {% if match.match_score >= 80 %}match-high{% elif match.match_score >= 70 %}match-medium{% else %}match-low{% endif %}">
+                                                            {{ match.match_score }}%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <p class="text-muted mb-2">
+                                                    <i class="bi bi-briefcase me-1"></i>Applied for: {{ match.job_title }}
+                                                </p>
+                                                
+                                                <p class="text-muted mb-2">
+                                                    <i class="bi bi-award me-1"></i>{{ match.experience_years }} years experience
+                                                </p>
+                                                
+                                                {% if match.preferred_location %}
+                                                    <p class="text-muted mb-2">
+                                                        <i class="bi bi-geo-alt me-1"></i>{{ match.preferred_location }}
+                                                    </p>
+                                                {% endif %}
+                                                
+                                                {% if match.salary_expectation %}
+                                                    <p class="text-muted mb-2">
+                                                        <i class="bi bi-currency-dollar me-1"></i>Expected: ${{ match.salary_expectation|int }}
+                                                    </p>
+                                                {% endif %}
+                                                
+                                                {% if match.skills %}
+                                                    <p class="card-text small"><strong>Skills:</strong> {{ match.skills[:100] }}{% if match.skills|length > 100 %}...{% endif %}</p>
+                                                {% endif %}
+                                                
+                                                {% if match.ai_reasoning %}
+                                                    <div class="alert alert-light small mt-3">
+                                                        <strong>AI Analysis:</strong> {{ match.ai_reasoning[:200] }}{% if match.ai_reasoning|length > 200 %}...{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                <div class="d-flex gap-2 mt-3">
+                                                    <a href="{{ url_for('view_candidate', candidate_id=match.job_seeker_id) }}" class="btn btn-sm btn-gradient-primary">
+                                                        <i class="bi bi-eye me-1"></i>View Profile
+                                                    </a>
+                                                    <button onclick="contactCandidate({{ match.user_id }})" class="btn btn-sm btn-outline-success">
+                                                        <i class="bi bi-chat-dots me-1"></i>Contact
+                                                    </button>
+                                                    <button onclick="saveCandidate({{ match.job_seeker_id }})" class="btn btn-sm btn-outline-info">
+                                                        <i class="bi bi-bookmark me-1"></i>Save
+                                                    </button>
+                                                    <button onclick="offerJob({{ match.job_seeker_id }}, {{ match.job_id }})" class="btn btn-sm btn-gradient-secondary">
+                                                        <i class="bi bi-gift me-1"></i>Offer Job
+                                                    </button>
+                                                </div>
+                                                
+                                                <small class="text-muted d-block mt-2">
+                                                    Matched on {{ match.created_at.split(' ')[0] if match.created_at else 'Unknown' }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if matched_candidates|length > 8 %}
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-primary">
+                                        <i class="bi bi-plus-circle me-2"></i>View All {{ matched_candidates|length }} Matches
+                                    </button>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-person-x display-1 text-muted mb-3"></i>
+                                <h5>No candidate matches yet</h5>
+                                <p class="text-muted mb-4">When job seekers match with your jobs, they'll appear here</p>
+                                <button onclick="runMatching()" class="btn btn-gradient-secondary">
+                                    <i class="bi bi-magic me-2"></i>Find Candidates Now
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-activity me-2"></i>Recent Activity
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-4">
+                            <i class="bi bi-clock-history display-4 text-muted mb-3"></i>
+                            <p class="text-muted">No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Company Setup Prompt -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-building-gear display-1 text-muted mb-3"></i>
+                        <h4>Complete Your Company Profile</h4>
+                        <p class="text-muted mb-4">
+                            Set up your company profile to start posting jobs and attracting top talent
+                        </p>
+                        <a href="{{ url_for('profile_setup') }}" class="btn btn-gradient-primary btn-lg">
+                            <i class="bi bi-arrow-right me-2"></i>Setup Company Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function runMatching() {
+    const btn = document.getElementById('matchingBtn');
+    const originalText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="bi bi-spinner-border me-2"></i>Finding Candidates...';
+    btn.disabled = true;
+    
+    fetch('/api/run-matching')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`AI matching completed! Processed ${data.jobs_processed} jobs.`);
+                location.reload(); // Refresh to show updates
+            } else {
+                alert('Error running AI matching. Please try again.');
+            }
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error running AI matching. Please try again.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+}
+
+function saveCandidate(candidateId) {
+    fetch(`/api/save-candidate/${candidateId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.action === 'saved') {
+                alert('Candidate saved successfully!');
+            } else {
+                alert('Candidate removed from saved list.');
+            }
+        } else {
+            alert('Error saving candidate. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving candidate. Please try again.');
+    });
+}
+
+function contactCandidate(userId) {
+    window.location.href = `/contact/${userId}`;
+}
+
+function viewJobCandidates(jobId) {
+    // This could show a modal or navigate to a dedicated page
+    // For now, we'll just show an alert
+    alert(`Viewing candidates for job ID: ${jobId}. This feature can be expanded to show a detailed candidate list.`);
+}
+
+function offerJob(jobSeekerId, jobId) {
+    // Show a modal or prompt for offer details
+    const offerMessage = prompt('Enter a message for the job offer (optional):');
+    if (offerMessage === null) return; // User cancelled
+    
+    const salaryOffered = prompt('Enter salary offer (optional):');
+    if (salaryOffered === null) return; // User cancelled
+    
+    const startDate = prompt('Enter proposed start date (optional):');
+    if (startDate === null) return; // User cancelled
+    
+    // Send job offer
+    fetch(`/api/offer-job/${jobSeekerId}/${jobId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            offer_message: offerMessage || '',
+            salary_offered: salaryOffered || '',
+            start_date: startDate || ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sending job offer. Please try again.');
+    });
+}
+
+// Load ratings for all displayed candidates
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingElements = document.querySelectorAll('.candidate-rating');
+    ratingElements.forEach(element => {
+        const userId = element.dataset.userId;
+        loadUserRating(userId, element);
+    });
+});
+
+function loadUserRating(userId, element) {
+    fetch(`/api/get-ratings/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            const rating = data.avg_rating || 0;
+            const count = data.count || 0;
+            
+            if (rating > 0) {
+                element.innerHTML = `<i class="bi bi-star-fill text-warning"></i> <small>${rating} (${count})</small>`;
+            } else {
+                element.innerHTML = `<i class="bi bi-star text-muted"></i> <small class="text-muted">No ratings</small>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading rating for user', userId, error);
+            element.innerHTML = `<i class="bi bi-star text-muted"></i> <small class="text-muted">-</small>`;
+        });
+}
+</script>
+{% endblock %} 

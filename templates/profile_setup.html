@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Setup - Werkly{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="card-title">Complete Your Profile</h2>
+                        <p class="text-muted">
+                            {% if user_type == 'seeker' %}
+                                Tell us about yourself to get better job matches
+                            {% else %}
+                                Provide company information to attract the right candidates
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {% if user_type == 'seeker' %}
+                            <!-- Job Seeker Profile -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="full_name" class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" id="full_name" name="full_name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="experience_years" class="form-label">Years of Experience</label>
+                                        <select class="form-select" id="experience_years" name="experience_years">
+                                            <option value="0">Entry Level (0-1 years)</option>
+                                            <option value="2">Junior (2-3 years)</option>
+                                            <option value="4">Mid-level (4-6 years)</option>
+                                            <option value="7">Senior (7-10 years)</option>
+                                            <option value="11">Expert (11+ years)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="skills" class="form-label">Skills *</label>
+                                <input type="text" class="form-control" id="skills" name="skills" 
+                                       placeholder="e.g., Python, JavaScript, Project Management, Marketing" required>
+                                <div class="form-text">Separate skills with commas</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="education" class="form-label">Education</label>
+                                <input type="text" class="form-control" id="education" name="education" 
+                                       placeholder="e.g., Bachelor's in Computer Science, MBA">
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="preferred_location" class="form-label">Preferred Location</label>
+                                        <input type="text" class="form-control" id="preferred_location" name="preferred_location" 
+                                               placeholder="e.g., New York, Remote, San Francisco">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="salary_expectation" class="form-label">Salary Expectation ($)</label>
+                                        <input type="number" class="form-control" id="salary_expectation" name="salary_expectation" 
+                                               placeholder="e.g., 75000">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Employment Type Preferences -->
+                            <div class="mb-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="bi bi-clock me-2"></i>Employment Type Preferences
+                                        </h6>
+                                        <p class="card-text text-muted small mb-3">
+                                            Select all employment types you're interested in. This helps us match you with the right opportunities.
+                                        </p>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="emp_type_fulltime" 
+                                                           name="preferred_employment_types" value="Full-time" checked>
+                                                    <label class="form-check-label" for="emp_type_fulltime">
+                                                        <i class="bi bi-briefcase me-1 text-primary"></i><strong>Full-time</strong>
+                                                        <small class="text-muted d-block">Traditional 40-hour work week with full benefits</small>
+                                                    </label>
+                                                </div>
+                                                
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="emp_type_parttime" 
+                                                           name="preferred_employment_types" value="Part-time">
+                                                    <label class="form-check-label" for="emp_type_parttime">
+                                                        <i class="bi bi-clock me-1 text-success"></i><strong>Part-time</strong>
+                                                        <small class="text-muted d-block">Flexible hours, typically 20-30 hours per week</small>
+                                                    </label>
+                                                </div>
+                                                
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="emp_type_contract" 
+                                                           name="preferred_employment_types" value="Contract">
+                                                    <label class="form-check-label" for="emp_type_contract">
+                                                        <i class="bi bi-file-text me-1 text-warning"></i><strong>Contract</strong>
+                                                        <small class="text-muted d-block">Fixed-term projects or assignments</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="emp_type_freelance" 
+                                                           name="preferred_employment_types" value="Freelance">
+                                                    <label class="form-check-label" for="emp_type_freelance">
+                                                        <i class="bi bi-person-workspace me-1 text-info"></i><strong>Freelance</strong>
+                                                        <small class="text-muted d-block">Independent contractor work</small>
+                                                    </label>
+                                                </div>
+                                                
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="emp_type_internship" 
+                                                           name="preferred_employment_types" value="Internship">
+                                                    <label class="form-check-label" for="emp_type_internship">
+                                                        <i class="bi bi-mortarboard me-1 text-secondary"></i><strong>Internship</strong>
+                                                        <small class="text-muted d-block">Entry-level learning opportunities</small>
+                                                    </label>
+                                                </div>
+                                                
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="emp_type_remote" 
+                                                           name="preferred_employment_types" value="Remote">
+                                                    <label class="form-check-label" for="emp_type_remote">
+                                                        <i class="bi bi-house me-1 text-purple"></i><strong>Remote</strong>
+                                                        <small class="text-muted d-block">Work from anywhere opportunities</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="alert alert-info small mt-3">
+                                            <i class="bi bi-lightbulb me-2"></i>
+                                            <strong>Tip:</strong> Selecting multiple options increases your chances of finding the perfect match! You can always adjust these preferences later.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="personal_statement" class="form-label">Personal Statement *</label>
+                                <textarea class="form-control" id="personal_statement" name="personal_statement" rows="4" 
+                                          placeholder="Tell us about your career goals, what you're passionate about, and what kind of role you're looking for..." required></textarea>
+                            </div>
+                            
+                            <!-- Resume Upload Section -->
+                            <div class="mb-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="bi bi-file-earmark-arrow-up me-2"></i>Upload Your Resume/CV
+                                        </h6>
+                                        <p class="card-text text-muted small mb-3">
+                                            Upload your resume as a PDF or DOCX file. Our AI will automatically extract and analyze the content.
+                                        </p>
+                                        
+                                        <div class="mb-3">
+                                            <label for="resume_file" class="form-label">Choose Resume File</label>
+                                            <input type="file" class="form-control" id="resume_file" name="resume_file" 
+                                                   accept=".pdf,.docx" onchange="handleFileSelect(this)">
+                                            <div class="form-text">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Accepted formats: PDF, DOCX (Max size: 16MB)
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="file-selected" class="alert alert-success d-none">
+                                            <i class="bi bi-check-circle me-2"></i>
+                                            <span id="selected-filename"></span> selected for upload
+                                        </div>
+                                        
+                                        <div class="alert alert-info small">
+                                            <i class="bi bi-lightbulb me-2"></i>
+                                            <strong>Tip:</strong> If you upload a file, you can still add additional notes in the text area below.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="resume_text" class="form-label">Additional Resume Content or Notes</label>
+                                <textarea class="form-control" id="resume_text" name="resume_text" rows="6" 
+                                          placeholder="Optional: Add any additional information, key highlights, or notes about your experience that might not be in your uploaded resume..."></textarea>
+                                <div class="form-text">This supplements your uploaded resume and helps our AI better understand your background</div>
+                            </div>
+                            
+                            <!-- Job Priorities Section -->
+                            <div class="mb-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="bi bi-star me-2"></i>Job Priorities
+                                        </h6>
+                                        <p class="card-text text-muted small mb-4">
+                                            Rate the importance of different factors in your ideal job (1 = Not Important, 5 = Very Important). This helps our AI find better matches for you.
+                                        </p>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="priority_salary" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-currency-dollar me-1"></i>Salary</span>
+                                                        <span class="priority-value" id="salary-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_salary" name="priority_salary" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('salary', this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="priority_work_life_balance" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-balance me-1"></i>Work-Life Balance</span>
+                                                        <span class="priority-value" id="work_life_balance-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_work_life_balance" name="priority_work_life_balance" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('work_life_balance', this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="priority_remote_work" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-house me-1"></i>Remote Work Options</span>
+                                                        <span class="priority-value" id="remote_work-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_remote_work" name="priority_remote_work" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('remote_work', this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="priority_company_culture" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-heart me-1"></i>Company Culture</span>
+                                                        <span class="priority-value" id="company_culture-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_company_culture" name="priority_company_culture" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('company_culture', this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="priority_career_growth" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-graph-up-arrow me-1"></i>Career Growth</span>
+                                                        <span class="priority-value" id="career_growth-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_career_growth" name="priority_career_growth" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('career_growth', this.value)">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="priority_job_security" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-shield-check me-1"></i>Job Security</span>
+                                                        <span class="priority-value" id="job_security-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_job_security" name="priority_job_security" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('job_security', this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="priority_learning_opportunities" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-mortarboard me-1"></i>Learning Opportunities</span>
+                                                        <span class="priority-value" id="learning_opportunities-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_learning_opportunities" name="priority_learning_opportunities" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('learning_opportunities', this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="priority_team_environment" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-people me-1"></i>Team Environment</span>
+                                                        <span class="priority-value" id="team_environment-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_team_environment" name="priority_team_environment" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('team_environment', this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="priority_work_autonomy" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-person-workspace me-1"></i>Work Autonomy</span>
+                                                        <span class="priority-value" id="work_autonomy-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_work_autonomy" name="priority_work_autonomy" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('work_autonomy', this.value)">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label for="priority_benefits" class="form-label d-flex justify-content-between">
+                                                        <span><i class="bi bi-gift me-1"></i>Benefits Package</span>
+                                                        <span class="priority-value" id="benefits-value">3</span>
+                                                    </label>
+                                                    <input type="range" class="form-range" id="priority_benefits" name="priority_benefits" 
+                                                           min="1" max="5" value="3" oninput="updatePriorityValue('benefits', this.value)">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="alert alert-info small mt-3">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <strong>Tip:</strong> Be honest about your priorities! This helps us match you with jobs that truly fit what you're looking for.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        {% else %}
+                            <!-- Company Profile -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="company_name" class="form-label">Company Name *</label>
+                                        <input type="text" class="form-control" id="company_name" name="company_name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="industry" class="form-label">Industry</label>
+                                        <select class="form-select" id="industry" name="industry">
+                                            <option value="">Select Industry</option>
+                                            <option value="Technology">Technology</option>
+                                            <option value="Healthcare">Healthcare</option>
+                                            <option value="Finance">Finance</option>
+                                            <option value="Education">Education</option>
+                                            <option value="Retail">Retail</option>
+                                            <option value="Manufacturing">Manufacturing</option>
+                                            <option value="Consulting">Consulting</option>
+                                            <option value="Media">Media & Entertainment</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="size" class="form-label">Company Size</label>
+                                        <select class="form-select" id="size" name="size">
+                                            <option value="">Select Size</option>
+                                            <option value="1-10">Startup (1-10 employees)</option>
+                                            <option value="11-50">Small (11-50 employees)</option>
+                                            <option value="51-200">Medium (51-200 employees)</option>
+                                            <option value="201-1000">Large (201-1000 employees)</option>
+                                            <option value="1000+">Enterprise (1000+ employees)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label">Headquarters Location</label>
+                                        <input type="text" class="form-control" id="location" name="location" 
+                                               placeholder="e.g., San Francisco, CA">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="website" class="form-label">Company Website</label>
+                                <input type="url" class="form-control" id="website" name="website" 
+                                       placeholder="https://www.yourcompany.com">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Company Description *</label>
+                                <textarea class="form-control" id="description" name="description" rows="4" 
+                                          placeholder="Tell us about your company, mission, culture, and what makes it a great place to work..." required></textarea>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-gradient-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Complete Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updatePriorityValue(priority, value) {
+    document.getElementById(priority + '-value').textContent = value;
+}
+
+function handleFileSelect(input) {
+    const fileAlert = document.getElementById('file-selected');
+    const filenameSpan = document.getElementById('selected-filename');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const fileName = file.name;
+        const fileSize = file.size;
+        const maxSize = 16 * 1024 * 1024; // 16MB
+        
+        // Check file size
+        if (fileSize > maxSize) {
+            alert('File size is too large. Please select a file smaller than 16MB.');
+            input.value = '';
+            fileAlert.classList.add('d-none');
+            return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowedTypes.includes(file.type) && !fileName.toLowerCase().endsWith('.pdf') && !fileName.toLowerCase().endsWith('.docx')) {
+            alert('Please select a PDF or DOCX file.');
+            input.value = '';
+            fileAlert.classList.add('d-none');
+            return;
+        }
+        
+        // Show success message
+        filenameSpan.textContent = fileName;
+        fileAlert.classList.remove('d-none');
+        
+        // Update the textarea label to indicate file upload
+        const resumeTextLabel = document.querySelector('label[for="resume_text"]');
+        resumeTextLabel.innerHTML = 'Additional Resume Content or Notes <span class="text-success">(File selected for upload)</span>';
+    } else {
+        fileAlert.classList.add('d-none');
+        const resumeTextLabel = document.querySelector('label[for="resume_text"]');
+        resumeTextLabel.textContent = 'Additional Resume Content or Notes';
+    }
+}
+
+// Update form submission to show processing message
+document.querySelector('form').addEventListener('submit', function(e) {
+    const fileInput = document.getElementById('resume_file');
+    if (fileInput && fileInput.files.length > 0) {
+        const submitBtn = document.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Processing Resume...';
+        submitBtn.disabled = true;
+    }
+});
+</script>
+{% endblock %} 

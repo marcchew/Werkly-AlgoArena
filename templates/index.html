@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Werkly - AI-Powered Job Matching{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="display-4 fw-bold mb-4">
+                    Find Your Perfect Job Match with AI
+                </h1>
+                <p class="lead mb-5">
+                    Werkly uses advanced artificial intelligence to connect job seekers with their ideal opportunities 
+                    and help companies find the perfect candidates. No more endless scrolling through irrelevant listings.
+                </p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-person-plus me-2"></i>Get Started for Free
+                    </a>
+                    <a href="#features" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-info-circle me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Why Choose Werkly?</h2>
+            <p class="lead text-muted">Revolutionary features that make job matching effortless and effective</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-robot feature-icon mb-3"></i>
+                        <h4 class="card-title">AI-Powered Matching</h4>
+                        <p class="card-text">
+                            Our advanced AI analyzes resumes, job descriptions, and personality traits to create 
+                            perfect matches with detailed compatibility scores.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-lightning-charge feature-icon mb-3"></i>
+                        <h4 class="card-title">Instant Results</h4>
+                        <p class="card-text">
+                            Upload your resume or post a job, and get matched instantly. Our system works 
+                            24/7 to find the best opportunities for you.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-person-hearts feature-icon mb-3"></i>
+                        <h4 class="card-title">Personalized Experience</h4>
+                        <p class="card-text">
+                            Every recommendation is tailored to your skills, experience, preferences, 
+                            and career goals for maximum relevance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">How It Works</h2>
+            <p class="lead text-muted">Simple steps to find your perfect match</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- For Job Seekers -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="bi bi-person-search me-2"></i>For Job Seekers</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <span class="badge bg-primary rounded-pill me-3 fs-6">1</span>
+                            <div>
+                                <h6>Create Your Profile</h6>
+                                <p class="mb-0 text-muted">Upload your resume and tell us about your career goals</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start mb-3">
+                            <span class="badge bg-primary rounded-pill me-3 fs-6">2</span>
+                            <div>
+                                <h6>AI Analysis</h6>
+                                <p class="mb-0 text-muted">Our AI analyzes your skills, experience, and preferences</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start">
+                            <span class="badge bg-primary rounded-pill me-3 fs-6">3</span>
+                            <div>
+                                <h6>Get Matched</h6>
+                                <p class="mb-0 text-muted">Receive personalized job recommendations with compatibility scores</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- For Companies -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0"><i class="bi bi-building me-2"></i>For Companies</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <span class="badge bg-secondary rounded-pill me-3 fs-6">1</span>
+                            <div>
+                                <h6>Post Your Job</h6>
+                                <p class="mb-0 text-muted">Describe your role, requirements, and company culture</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start mb-3">
+                            <span class="badge bg-secondary rounded-pill me-3 fs-6">2</span>
+                            <div>
+                                <h6>AI Candidate Matching</h6>
+                                <p class="mb-0 text-muted">Our AI finds candidates that match your specific needs</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start">
+                            <span class="badge bg-secondary rounded-pill me-3 fs-6">3</span>
+                            <div>
+                                <h6>Review Top Matches</h6>
+                                <p class="mb-0 text-muted">Get a curated list of the best candidates with detailed insights</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="display-5 fw-bold mb-4">Ready to Transform Your Career?</h2>
+                <p class="lead mb-4">
+                    Join thousands of professionals who have found their perfect job match using AI technology.
+                </p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{{ url_for('register') }}" class="btn btn-gradient-primary btn-lg px-5">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Start Matching Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

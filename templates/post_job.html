@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Post a Job - Werkly{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="card-title">Post a New Job</h2>
+                        <p class="text-muted">Create a detailed job posting to attract the right candidates</p>
+                    </div>
+                    
+                    <form method="POST">
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Job Title *</label>
+                                    <input type="text" class="form-control" id="title" name="title" 
+                                           placeholder="e.g., Senior Software Engineer, Marketing Manager" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="employment_type" class="form-label">Employment Type</label>
+                                    <select class="form-select" id="employment_type" name="employment_type">
+                                        <option value="Full-time">Full-time</option>
+                                        <option value="Part-time">Part-time</option>
+                                        <option value="Contract">Contract</option>
+                                        <option value="Freelance">Freelance</option>
+                                        <option value="Internship">Internship</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="location" class="form-label">Location</label>
+                                    <input type="text" class="form-control" id="location" name="location" 
+                                           placeholder="e.g., San Francisco, CA or Remote">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="salary_range" class="form-label">Salary Range</label>
+                                    <input type="text" class="form-control" id="salary_range" name="salary_range" 
+                                           placeholder="e.g., $80,000 - $120,000">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="experience_required" class="form-label">Experience Required (Years)</label>
+                            <select class="form-select" id="experience_required" name="experience_required">
+                                <option value="0">Entry Level (0-1 years)</option>
+                                <option value="2">Junior (2-3 years)</option>
+                                <option value="4">Mid-level (4-6 years)</option>
+                                <option value="7">Senior (7-10 years)</option>
+                                <option value="11">Expert (11+ years)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Job Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Job Description *</label>
+                            <textarea class="form-control" id="description" name="description" rows="6" 
+                                      placeholder="Describe the role, responsibilities, what a typical day looks like, company culture, benefits, etc..." required></textarea>
+                            <div class="form-text">Provide a comprehensive description to help our AI find the best matches</div>
+                        </div>
+                        
+                        <!-- Requirements -->
+                        <div class="mb-3">
+                            <label for="requirements" class="form-label">Requirements & Qualifications *</label>
+                            <textarea class="form-control" id="requirements" name="requirements" rows="4" 
+                                      placeholder="List required skills, qualifications, education, certifications, etc..." required></textarea>
+                        </div>
+                        
+                        <!-- Tags/Skills -->
+                        <div class="mb-4">
+                            <label for="tags" class="form-label">Skills & Tags</label>
+                            <input type="text" class="form-control" id="tags" name="tags" 
+                                   placeholder="e.g., Python, React, Project Management, Leadership, Remote Work">
+                            <div class="form-text">Separate skills and tags with commas. This helps with AI matching.</div>
+                        </div>
+                        
+                        <!-- Additional Information -->
+                        <div class="bg-light p-4 rounded mb-4">
+                            <h6 class="mb-3">
+                                <i class="bi bi-lightbulb me-2"></i>Tips for Better AI Matching
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li>Be specific about required skills and technologies</li>
+                                <li>Mention your company culture and work environment</li>
+                                <li>Include both hard and soft skills in your requirements</li>
+                                <li>Specify remote work options if available</li>
+                                <li>Add industry-specific keywords and buzzwords</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-gradient-primary btn-lg flex-grow-1">
+                                <i class="bi bi-check-circle me-2"></i>Post Job & Find Candidates
+                            </button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Section -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 bg-light">
+                <div class="card-body p-4">
+                    <h6 class="mb-3">
+                        <i class="bi bi-eye me-2"></i>Live Preview
+                    </h6>
+                    <div id="jobPreview" class="bg-white p-4 rounded shadow-sm">
+                        <h5 id="previewTitle" class="text-muted">Job Title</h5>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-geo-alt me-1"></i><span id="previewLocation">Location</span>
+                            <span class="mx-2">•</span>
+                            <i class="bi bi-clock me-1"></i><span id="previewType">Employment Type</span>
+                        </p>
+                        <p class="text-muted mb-3">
+                            <i class="bi bi-currency-dollar me-1"></i><span id="previewSalary">Salary Range</span>
+                        </p>
+                        <div class="mb-3">
+                            <h6>Description</h6>
+                            <p id="previewDescription" class="text-muted small">Job description will appear here...</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Requirements</h6>
+                            <p id="previewRequirements" class="text-muted small">Requirements will appear here...</p>
+                        </div>
+                        <div id="previewTagsContainer" style="display: none;">
+                            <h6>Skills & Tags</h6>
+                            <div id="previewTags"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Live preview functionality
+    const fields = {
+        'title': 'previewTitle',
+        'location': 'previewLocation',
+        'employment_type': 'previewType',
+        'salary_range': 'previewSalary',
+        'description': 'previewDescription',
+        'requirements': 'previewRequirements'
+    };
+    
+    // Add event listeners for live preview
+    Object.keys(fields).forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        const preview = document.getElementById(fields[fieldId]);
+        
+        field.addEventListener('input', function() {
+            if (fieldId === 'description' || fieldId === 'requirements') {
+                preview.textContent = this.value || `${fieldId.charAt(0).toUpperCase() + fieldId.slice(1)} will appear here...`;
+            } else {
+                preview.textContent = this.value || fieldId.replace('_', ' ');
+            }
+        });
+    });
+    
+    // Tags preview
+    const tagsField = document.getElementById('tags');
+    const tagsPreview = document.getElementById('previewTags');
+    const tagsContainer = document.getElementById('previewTagsContainer');
+    
+    tagsField.addEventListener('input', function() {
+        const tags = this.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+        
+        if (tags.length > 0) {
+            tagsContainer.style.display = 'block';
+            tagsPreview.innerHTML = tags.map(tag => 
+                `<span class="badge bg-primary me-1 mb-1">${tag}</span>`
+            ).join('');
+        } else {
+            tagsContainer.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %} 

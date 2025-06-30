@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Job Applications{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-people me-2"></i>Job Applications</h2>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+            
+            {% if applications %}
+                <div class="row">
+                    {% for app in applications %}
+                        <div class="col-12 mb-3">
+                            <div class="card application-card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">{{ app.full_name }}</h6>
+                                        <small class="text-muted">Applied for: {{ app.job_title }}</small>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if app.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif app.status == 'reviewed' %}
+                                            <span class="badge bg-info">Reviewed</span>
+                                        {% elif app.status == 'accepted' %}
+                                            <span class="badge bg-success">Accepted</span>
+                                        {% elif app.status == 'rejected' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% endif %}
+                                        <small class="text-muted">{{ app.applied_at.split(' ')[0] if app.applied_at else 'Unknown' }}</small>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <p class="mb-2">
+                                                        <strong>Experience:</strong> {{ app.experience_years }} years
+                                                    </p>
+                                                    <p class="mb-2">
+                                                        <strong>Education:</strong> {{ app.education or 'Not specified' }}
+                                                    </p>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <p class="mb-2">
+                                                        <strong>Skills:</strong> {{ app.skills or 'Not specified' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if app.cover_letter %}
+                                                <div class="mt-3">
+                                                    <strong>Cover Letter:</strong>
+                                                    <div class="cover-letter-preview mt-2">
+                                                        {{ app.cover_letter }}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="d-grid gap-2">
+                                                <a href="{{ url_for('view_candidate', candidate_id=app.job_seeker_id) }}" 
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-person me-1"></i>View Profile
+                                                </a>
+                                                <button onclick="contactCandidate({{ app.seeker_user_id }})" 
+                                                        class="btn btn-outline-secondary btn-sm">
+                                                    <i class="bi bi-chat-dots me-1"></i>Contact
+                                                </button>
+                                                <button onclick="offerJob({{ app.job_seeker_id }}, {{ app.job_id }})" 
+                                                        class="btn btn-gradient-secondary btn-sm">
+                                                    <i class="bi bi-gift me-1"></i>Offer Job
+                                                </button>
+                                                <a href="{{ url_for('view_job', job_id=app.job_id) }}" 
+                                                   class="btn btn-outline-info btn-sm">
+                                                    <i class="bi bi-briefcase me-1"></i>View Job
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-people" style="font-size: 4rem; color: #6c757d;"></i>
+                    </div>
+                    <h4 class="text-muted">No Applications Yet</h4>
+                    <p class="text-muted">No one has applied to your job postings yet. Make sure your jobs are active and well-described to attract candidates!</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{{ url_for('post_job') }}" class="btn btn-gradient-primary">
+                            <i class="bi bi-plus me-2"></i>Post New Job
+                        </a>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-list me-2"></i>Manage Jobs
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function contactCandidate(userId) {
+    window.location.href = `/contact/${userId}`;
+}
+
+function offerJob(jobSeekerId, jobId) {
+    // Show a modal or prompt for offer details
+    const offerMessage = prompt('Enter a message for the job offer (optional):');
+    if (offerMessage === null) return; // User cancelled
+    
+    const salaryOffered = prompt('Enter salary offer (optional):');
+    if (salaryOffered === null) return; // User cancelled
+    
+    const startDate = prompt('Enter proposed start date (optional):');
+    if (startDate === null) return; // User cancelled
+    
+    // Send job offer
+    fetch(`/api/offer-job/${jobSeekerId}/${jobId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            offer_message: offerMessage || '',
+            salary_offered: salaryOffered || '',
+            start_date: startDate || ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sending job offer. Please try again.');
+    });
+}
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+.application-card {
+    transition: transform 0.2s ease-in-out;
+    border-left: 4px solid #007bff;
+}
+
+.application-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.cover-letter-preview {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    border-left: 3px solid #007bff;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.btn-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border: none;
+    color: white;
+}
+
+.btn-gradient-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #003d82);
+    color: white;
+}
+
+.btn-gradient-secondary {
+    background: linear-gradient(45deg, #f093fb, #f5576c);
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient-secondary:hover {
+    background: linear-gradient(45deg, #f5576c, #d63384);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+}
+</style>
+{% endblock %} 
